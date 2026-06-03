@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+
+from httpx import delete
 from openai import OpenAI
 from datetime import datetime
 from streamlit import session_state
@@ -49,6 +51,7 @@ def load_sessions():
         for filename in file_list:
             if filename.endswith(".json"):
                 session_list.append(filename[:-5])
+    session_list.sort(reverse=True) # 降序排序
     return session_list
 
 # 加载指定对话信息
@@ -64,6 +67,19 @@ def load_session(session_name):
                 st.session_state.current_session = session_name
     except Exception as e:
         st.error("加载会话数据失败!")
+
+# 删除会话信息的函数
+def delete_session(session_name):
+    try:
+        if os.path.exists(f"sessions/{session_name}.json"):
+            os.remove(f"sessions/{session_name}.json")
+            # 如果删除的是当前会话, 则需要更新当前列表
+            if session_name == st.session_state.current_session:
+                st.session_state.message = []
+                st.session_state.current_session = generate_session_name()
+
+    except Exception:
+        st.error("删除会话失败!")
 
 # 大标题
 st.title("AI智能伴侣")
@@ -150,7 +166,10 @@ with st.sidebar:
         with col2:
             # 删除会话信息
             if st.button("", width="stretch", icon="❌", key = f"delete_{session}"):
-                pass
+                delete_session(session)
+                st.rerun()
+    # 分割线
+    st.divider()
 
     # 伴侣信息
     st.subheader("伴侣信息")
