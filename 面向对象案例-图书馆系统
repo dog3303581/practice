@@ -1,0 +1,172 @@
+"""
+案例--基于面向对象的编程思想完成如下系统开发
+某社区图书馆需要开发一个简单的图书管理系统。系统需要支持会员登录、图书借阅、图书归还等功能。系统中有两种类型的会员:普通会员和VIP会员，他们的借书权限不同。你需要使用面向对象编程的思想，设计并实现这个图书管理系统。
+核心功能:
+    1.会员登录:会员通过卡号和密码登录系统
+    2.借书:会员可以借阅库存中有余量的图书
+    3.还书:会员可以归还借阅的图书
+    4.查看我的借阅:展示当前会员已经借阅的图书列表
+    5.退出系统
+借阅规则:
+    1.普通会员最多可借3本
+    2.VIP会员最多可借6+VIP等级本(VIP等级，默认为1)
+注意:
+    1.登录成功(卡号和密码均正确)后，才可以访问该系统
+    2.图书库存不足，或当前会员借书数量达到最大借书数量，不能再借新书
+"""
+
+# 核心系统面板
+"""
+核心功能:
+    1.会员登录:会员通过卡号和密码登录系统
+    2.借书:会员可以借阅库存中有余量的图书
+    3.还书:会员可以归还借阅的图书
+    4.查看我的借阅:展示当前会员已经借阅的图书列表
+    5.退出系统
+"""
+# 图书馆系统界面
+def main_interface():
+    print("""
+    ======================  图书馆借阅系统   ======================
+    # # # # # # # # # # #   1.会员登录      # # # # # # # # # # #
+    # # # # # # # # # # #   2.借书         # # # # # # # # # # #
+    # # # # # # # # # # #   3.还书         # # # # # # # # # # #
+    # # # # # # # # # # #   4.查看我的借阅  # # # # # # # # # # #
+    # # # # # # # # # # #   5.退出系统     # # # # # # # # # # #
+    ============================================================
+    """)
+    choice = int(input("请选择要执行操作，输入1-5: "))
+    return choice
+
+# 图书管理系统
+class Library_System:
+    # 初始化书籍列表,会员列表等图书馆系统信息
+    def __init__(self):
+        self.book_list = ["肖申克的救赎", "三国演义", "水浒传", "红楼梦", "金瓶梅", "三毛历险记", "随机漫步的傻瓜", "穷查理", "大数据教学"]
+        self.member_list = {"260001": {"name": "张三", "password": "123456", "is_vip": False, "vip_level": 0, "borrowed_book_list": ["哈利波特"]},
+                            "260002": {"name": "李四", "password": "665643", "is_vip": True, "vip_level": 1, "borrowed_book_list": []},
+                            "260003": {"name": "王五", "password": "467832", "is_vip": True, "vip_level": 3, "borrowed_book_list": ["西游记", "三国演义"]},
+                            "260004": {"name": "赵六", "password": "562241", "is_vip": False, "vip_level": 0, "borrowed_book_list": []}
+                            }
+# # 验证会员账号获取
+#     def num_lib(self):
+#         print("会员账号为: ", list(self.member_list.keys()))
+#     # 会员登录
+
+# 验证密码获取
+#     def num_pwd(self):
+#         for key, value in self.member_list.items():
+#             print(value['password'])
+
+    # 会员登录功能
+    """
+    会员通过卡号(self.member_list里的key)和密码((self.member_list里的password的value值)登录系统
+    判断卡号密码是否正确,不正确就提示"卡号或密码错误",然后返回登录界面
+    """
+    def login(self):
+        print("""======================  登录界面   ======================""")
+        num = str(input("请输入会员卡号:"))
+        password = input("请输入会员密码: ")
+        if num in self.member_list and self.member_list[num]["password"] == password:
+            print(f"""==================  登录成功！欢迎 {self.member_list[num]['name']}  ==================""")
+            return num  # 返回登录成功的会员编号
+        else:
+            print("卡号或密码错误")
+            return None  # 登录失败返回None
+
+    # 借书功能
+    def borrow_book(self, current_user_id):
+        """
+        如果是普通会员可以借阅库存中图书, 总数量不能超过3本
+        如果是VIP会员可以借阅库存中图书, 总数量最多可借6+VIP等级本
+        如果不是会员,不能借书
+        """
+        bo_book_name = input("请输入要借阅的图书名称: ")
+        current_user = self.member_list[current_user_id]
+
+        if current_user["is_vip"]:
+            max_books = 6 + current_user["vip_level"]
+            print(f"您是VIP会员, 借阅数量最多可借{max_books}本")
+            if len(current_user["borrowed_book_list"]) < max_books:
+                if bo_book_name in self.book_list:
+                    current_user["borrowed_book_list"].append(bo_book_name)
+                    # 原书库减少这本书
+                    self.book_list.remove(bo_book_name)
+                    print("借阅成功")
+                else:
+                    print("借阅失败, 没有这本书, 或书已被借出")
+            else:
+                print("借阅失败,您的借出数量已经达到最大值")
+        else:
+            max_books = 3
+            print(f"您只是普通会员, 借阅数量最多可借{max_books}本")
+            if len(current_user["borrowed_book_list"]) < max_books:
+                if bo_book_name in self.book_list:
+                    current_user["borrowed_book_list"].append(bo_book_name)
+                    # 原书库减少这本书
+                    self.book_list.remove(bo_book_name)
+                    print("借阅成功")
+                else:
+                    print("借阅失败, 没有这本书, 或书已被借出")
+            else:
+                print("借阅失败,您的借出数量已经达到最大值")
+
+    # 还书功能
+    def return_book(self, current_user_id):
+        re_book_name = input("请输入要还书的图书名称: ")
+        current_user = self.member_list[current_user_id]
+
+        if re_book_name in current_user["borrowed_book_list"]:
+            current_user["borrowed_book_list"].remove(re_book_name)
+            self.book_list.append(re_book_name)
+            print("还书成功")
+        else:
+            print("还书失败, 您没有借过这本书")
+
+    # 查看我的借阅:展示当前会员已经借阅的图书列表
+    def show_my_borrowed_book(self, current_user_id):
+        current_user = self.member_list[current_user_id]
+        print(f"{current_user['name']} 已经借阅的图书列表为: {current_user['borrowed_book_list']}")
+
+    # 退出系统
+    def exit_system(self):
+        print("退出系统")
+
+if __name__ == '__main__':
+    """
+    初始化图书馆系统数据
+    启动图书馆系统界面
+        只有登录成功才能启用其他功能,用match来实现
+    """
+    ls = Library_System()
+
+    # 必须先登录
+    current_user_id = None
+    while current_user_id is None:
+        print("""请先登录系统!""")
+        current_user_id = ls.login()
+
+    # 登录成功后进入主循环
+    while True:
+        a = main_interface()
+
+        match a:
+            case 1:
+                print("您已经登录成功,无需再次登录")
+
+            case 2:
+                ls.borrow_book(current_user_id)
+
+            case 3:
+                ls.return_book(current_user_id)
+
+            case 4:
+                ls.show_my_borrowed_book(current_user_id)
+
+            case 5:
+                ls.exit_system()
+                print("感谢使用，再见！")
+                break
+
+            case _:
+                print("请输入正确的选项")
